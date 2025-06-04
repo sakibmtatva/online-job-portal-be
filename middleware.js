@@ -23,7 +23,7 @@ const publicPrivateRoutes = ['/api/jobs', '/api/profileList', '/api/employerjobs
 export const middleware = withApiHandler(async request => {
   const response = NextResponse.next();
 
-  response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5173');
+  response.headers.set('Access-Control-Allow-Origin', '*');
 
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
