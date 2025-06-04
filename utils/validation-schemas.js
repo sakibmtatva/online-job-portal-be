@@ -89,6 +89,7 @@ export const JobValidationSchema = z
     is_remote: z.boolean().optional().default(false),
 
     is_active: z.boolean().optional().default(true),
+    is_featured: z.boolean().optional().default(false),
   })
   .refine(data => data.salary_min <= data.salary_max, {
     message: 'minimum salary cannot be greater than maximum salary',
@@ -108,4 +109,6 @@ export const ApplicationSchema = z.object({
     })
     .min(100, 'Cover letter must be at least 100 characters long')
     .max(1000, 'Cover letter must be at most 1000 characters long'),
+
+  trello_name: z.string().default('All Applications').optional(),
 });

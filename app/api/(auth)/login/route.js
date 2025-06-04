@@ -5,6 +5,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { withApiHandler } from '@/utils/commonHandlers';
 import { ApiError } from '@/utils/commonError';
+import '@/models/candidate';
+import '@/models/employer';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -12,7 +14,9 @@ export const POST = withApiHandler(async request => {
   const { email, password } = await request.json();
 
   await connectMongoDB();
-  const user = await Users.findOne({ email });
+  const user = await Users.findOne({ email })
+    .populate('candidate-profile-info', 'profile_url')
+    .populate('employer-profile-info', 'profile_url');
   if (!user) {
     throw new ApiError('Invalid credentials', 401);
   }
@@ -22,7 +26,7 @@ export const POST = withApiHandler(async request => {
     throw new ApiError('Invalid credentials', 401);
   }
 
-  const userObj = user.toObject();
+  const userObj = user.toObject({ virtuals: true });
   const { password: userPassword, verificationToken, __v, ...rest } = userObj;
 
   if (!user.isVerified) {
@@ -38,6 +42,13 @@ export const POST = withApiHandler(async request => {
     );
   }
 
+  let profile_url = null;
+  if (user.user_type === 'Candidate' && userObj['candidate-profile-info']) {
+    profile_url = userObj['candidate-profile-info'].profile_url || null;
+  } else if (user.user_type === 'Employer' && userObj['employer-profile-info']) {
+    profile_url = userObj['employer-profile-info'].profile_url || null;
+  }
+
   const token = jwt.sign(
     {
       id: user._id,
@@ -51,10 +62,10 @@ export const POST = withApiHandler(async request => {
   return NextResponse.json(
     {
       success: true,
-      data: rest,
+      data: { ...rest, profile_url },
       message: 'Login successfully',
       token,
-      user: rest,
+      user: { ...rest, profile_url },
     },
     { status: 200 }
   );

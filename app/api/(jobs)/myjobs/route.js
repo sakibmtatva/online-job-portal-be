@@ -24,7 +24,7 @@ export const GET = withApiHandler(async request => {
       $sort: sort,
     },
     {
-      $match: {user: new mongoose.Types.ObjectId(userDetails.id)},
+      $match: { user: new mongoose.Types.ObjectId(userDetails.id) },
     },
     {
       $lookup: {
@@ -54,7 +54,9 @@ export const GET = withApiHandler(async request => {
         status: 1,
         applicants: 1,
         skills_required: 1,
+        closing_date: 1,
         profile_url: '$employerData.profile_url',
+        is_featured: 1,
       },
     },
     {
@@ -70,7 +72,10 @@ export const GET = withApiHandler(async request => {
     applicantCount: job.applicants.length,
   }));
 
-  const totalAggregation = await Jobs.aggregate([{ $match: {user: new mongoose.Types.ObjectId(userDetails.id)} }, { $count: 'total' }]);
+  const totalAggregation = await Jobs.aggregate([
+    { $match: { user: new mongoose.Types.ObjectId(userDetails.id) } },
+    { $count: 'total' },
+  ]);
 
   const total = totalAggregation[0]?.total || 0;
 

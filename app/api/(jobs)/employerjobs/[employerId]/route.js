@@ -21,7 +21,10 @@ export const GET = withApiHandler(async (request, { params }) => {
       $sort: sort,
     },
     {
-      $match: {user: new mongoose.Types.ObjectId(employerId)},
+      $match: {
+        user: new mongoose.Types.ObjectId(employerId),
+        status: { $ne: 'Expired' },
+      },
     },
     {
       $lookup: {
@@ -62,7 +65,6 @@ export const GET = withApiHandler(async (request, { params }) => {
     },
   ]);
 
-
   if (userDetails) {
     const bookmarks = await BookmarkJob.find({
       candidate: userDetails.id,
@@ -84,7 +86,11 @@ export const GET = withApiHandler(async (request, { params }) => {
     });
   }
 
-  const total = await Jobs.countDocuments({ user: employerId.toString() });
+  const total = await Jobs.countDocuments({
+    user: employerId.toString(),
+    status: { $ne: 'Expired' },
+  });
+
   return successResponse(jobs, 'Jobs fetched successfully', 200, {
     total,
     page,

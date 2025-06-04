@@ -2,7 +2,6 @@ import connectMongoDB from '@/lib/mongodb';
 import Users from '@/models/users';
 import { successResponse, withApiHandler } from '@/utils/commonHandlers';
 import { ApiError } from '@/utils/commonError';
-import { firebaseAdmin } from '@/lib/firebase';
 
 const UNAUTHORIZED_ERROR = 'Unauthorized request';
 const LOGOUT_SUCCESS_MESSAGE = 'Logged out successfully';
@@ -24,7 +23,6 @@ export const POST = withApiHandler(async request => {
     const tokenIndex = user.fcmTokens?.indexOf(fcmToken);
     if (tokenIndex !== -1) {
       try {
-        // await firebaseAdmin.messaging().deleteToken(fcmToken);
         await Users.findByIdAndUpdate(userId, { $pull: { fcmTokens: fcmToken } }, { new: true });
       } catch (error) {
         throw new ApiError(`Firebase operation failed: ${error.message}`, 500);

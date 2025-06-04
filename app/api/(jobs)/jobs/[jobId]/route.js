@@ -14,21 +14,24 @@ export const PUT = withApiHandler(async (request, { params }) => {
   const body = await request.json();
   let data = { ...body };
 
+  const job = await Jobs.findById(jobId);
+  if (!job) {
+    throw new ApiError('Job not found', 404);
+  }
+
+  if (job.status === 'Expired') {
+    throw new ApiError('Cannot edit an expired job', 400);
+  }
+
   if (!body.status) {
-    const job = await Jobs.findById(jobId);
     data = { ...data, status: job.status };
   }
 
   JobValidationSchema.parse(data);
-
   const updatedJob = await Jobs.findByIdAndUpdate(jobId, body, {
     new: true,
     runValidators: true,
   });
-
-  if (!updatedJob) {
-    throw new ApiError('Job not found', 404);
-  }
 
   return successResponse(updatedJob, 'Job updated successfully', 200);
 });
@@ -81,12 +84,145 @@ export const GET = withApiHandler(async (request, { params }) => {
 export const DELETE = withApiHandler(async (_, { params }) => {
   await connectMongoDB();
   const { jobId } = await params;
-  const job = await Jobs.findByIdAndDelete({ _id: jobId });
-  if (job) {
-    return successResponse(null, 'Job deleted successfully', 200);
+
+  const job = await Jobs.findById(jobId);
+  if (!job) {
+    throw new ApiError('Job not found', 404);
   }
-  throw new ApiError('Something went wrong while deleting job', 500);
+
+  if (job.status === 'Expired') {
+    throw new ApiError('Cannot delete an expired job', 400);
+  }
+
+  await Jobs.findByIdAndDelete(jobId);
+
+  return successResponse(null, 'Job deleted successfully', 200);
 });
+
+export const POST = withApiHandler(async (request) => {
+  await connectMongoDB();
+  const body = await request.json();
+  const userDetails = JSON.parse(request.headers.get('x-user'));
+
+  if (!userDetails) {
+    throw new ApiError('Unauthorized access', 401);
+  }
+
+  const data = {
+    ...body,
+    user: userDetails.id,
+    applicants: [],
+    status: 'active'
+  };
+
+  JobValidationSchema.parse(data);
+
+  const newJob = await Jobs.create(data);
+
+  if (!newJob) {
+    throw new ApiError('Failed to create job', 500);
+  }
+
+  return successResponse(newJob, 'Job created successfully', 201);
+});
+
+/**
+ * @openapi
+ * /api/job/{jobId}:
+ *   post:
+ *     tags:
+ *       - Job
+ *     summary: Create a new job listing
+ *     description: Creates a new job listing with the provided details.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               job_title:
+ *                 type: string
+ *                 description: Job title
+ *               job_description:
+ *                 type: string
+ *                 description: Job description
+ *               location:
+ *                 type: string
+ *                 description: Job location
+ *               category:
+ *                 type: string
+ *                 description: Job category
+ *               salary_min:
+ *                 type: integer
+ *                 description: Minimum salary for the job
+ *               salary_max:
+ *                 type: integer
+ *                 description: Maximum salary for the job
+ *               education:
+ *                 type: string
+ *                 description: Education requirement
+ *               jobType:
+ *                 type: string
+ *                 description: Job type (e.g., full-time, part-time)
+ *               experience_level:
+ *                 type: string
+ *                 description: Required experience level
+ *     responses:
+ *       201:
+ *         description: Job created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Indicates if the job was created successfully
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: Job ID
+ *                     job_title:
+ *                       type: string
+ *                     job_description:
+ *                       type: string
+ *                     location:
+ *                       type: string
+ *                     category:
+ *                       type: string
+ *                     salary_min:
+ *                       type: integer
+ *                     salary_max:
+ *                       type: integer
+ *                     education:
+ *                       type: string
+ *                     jobType:
+ *                       type: string
+ *                     experience_level:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                     user:
+ *                       type: string
+ *                       description: ID of the user who created the job
+ *                     applicants:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       description: Array of applicant IDs
+ *       400:
+ *         description: Invalid job data
+ *       401:
+ *         description: Unauthorized access
+ *       500:
+ *         description: Internal server error
+ */
 
 /**
  * @openapi

@@ -25,7 +25,9 @@ export const GET = withApiHandler(async request => {
   const sortBy = searchParams.get('sortBy');
 
   const userDetails = JSON.parse(request.headers.get('x-user'));
-  let query = {};
+  let query = {
+    status: { $ne: 'Expired' },
+  };
 
   if (jobTitle) {
     query.job_title = { $regex: jobTitle, $options: 'i' };
@@ -65,7 +67,10 @@ export const GET = withApiHandler(async request => {
 
   let jobs = await Jobs.aggregate([
     {
-      $sort: sort,
+      $sort: {
+        is_featured: -1,     
+        createdAt: 1          
+      },
     },
     {
       $match: query,
@@ -98,7 +103,9 @@ export const GET = withApiHandler(async request => {
         status: 1,
         applicants: 1,
         skills_required: 1,
+        closing_date: 1,
         profile_url: '$employerData.profile_url',
+        is_featured: 1,
       },
     },
     {
@@ -164,6 +171,36 @@ export const POST = withApiHandler(async request => {
   JobValidationSchema.parse(data);
   const job = await Jobs.create(data);
   return successResponse(job, 'Job created successfully', 200);
+});
+
+export const PUT = withApiHandler(async request => {
+  await connectMongoDB();
+  const payload = await request.json();
+  const userDetails = JSON.parse(request.headers.get('x-user'));
+  if (userDetails.user_type !== 'Employer') {
+    throw new ApiError('Unauthorized request', 401);
+  }
+
+  const { jobId, is_featured } = payload;
+  if (!jobId || typeof is_featured !== 'boolean') {
+    throw new ApiError('Job ID and is_featured(boolean) are required', 400);
+  }
+
+  const job = await Jobs.findOneAndUpdate(
+    { _id: jobId, user: userDetails.id },
+    { $set: { is_featured } },
+    { new: true }
+  );
+
+  if (!job) {
+    throw new ApiError('Job not found or unauthorized', 404);
+  }
+
+  return successResponse(
+    job,
+    `Job ${is_featured ? 'marked as featured' : 'unfeatured'} successfully`,
+    200
+  );
 });
 
 /**

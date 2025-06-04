@@ -45,6 +45,18 @@ const jobSchema = new Schema(
       },
     },
     posted_date: { type: Date, default: Date.now },
+    closing_date: {
+      type: Date,
+      required: [true, 'Closing date is required'],
+      validate: {
+        validator: function (value) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return value >= today;
+        },
+        message: 'Closing date cannot be in the past.',
+      },
+    },
     jobType: {
       type: String,
       enum: {
@@ -88,6 +100,11 @@ const jobSchema = new Schema(
     is_active: {
       type: Boolean,
       default: true,
+    },
+    is_featured: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {

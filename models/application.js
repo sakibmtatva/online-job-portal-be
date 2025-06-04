@@ -11,6 +11,7 @@ const applicationSchema = new Schema(
       minlength: 100,
       maxlength: 2000,
     },
+    trello_name: { type: String, default: 'All Applications' },
     applied_at: { type: Date, default: Date.now },
   },
   { timestamps: true }

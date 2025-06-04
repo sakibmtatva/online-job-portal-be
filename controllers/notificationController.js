@@ -1,9 +1,9 @@
-import { firebaseAdmin } from "../lib/firebase.js";
-import Notification from "../models/notification.js";
-import Users from "@/models/users.js";
+import { firebaseAdmin } from '../lib/firebase.js';
+import Notification from '../models/notification.js';
+import Users from '@/models/users.js';
 
 export const notificationController = {
-  async createNotification(userId, message, type = "info", data = null) {
+  async createNotification(userId, message, type = 'info', data = null) {
     if (!userId || !message) {
       throw new Error('userId and message are required parameters');
     }
@@ -17,10 +17,10 @@ export const notificationController = {
 
       // Send Firebase push notification to all tokens
       try {
-        const user = await Users.findById(userId)
+        const user = await Users.findById(userId);
         if (user?.fcmTokens?.length > 0) {
           const validTokens = user.fcmTokens.filter(token => typeof token === 'string' && token.length > 0);
-          
+
           if (validTokens.length > 0) {
             const payload = {
               notification: {
@@ -40,15 +40,15 @@ export const notificationController = {
               console.log('Sending Firebase multicast notification...');
               const response = await firebaseAdmin.messaging().sendEachForMulticast({
                 tokens: validTokens,
-                ...payload
+                ...payload,
               });
               console.log('Firebase multicast response:', response);
             } else {
               const responses = await Promise.all(
-                validTokens.map(token => 
+                validTokens.map(token =>
                   firebaseAdmin.messaging().send({
                     token,
-                    ...payload
+                    ...payload,
                   })
                 )
               );
@@ -57,12 +57,12 @@ export const notificationController = {
           }
         }
       } catch (firebaseError) {
-        console.error("Firebase notification error:", firebaseError);
+        console.error('Firebase notification error:', firebaseError);
       }
 
       return notification;
     } catch (error) {
-      console.error("Error creating notification:", error);
+      console.error('Error creating notification:', error);
       throw error;
     }
   },
@@ -71,12 +71,8 @@ export const notificationController = {
     try {
       const skip = Math.max(0, (page - 1) * perPage);
       const [notifications, total] = await Promise.all([
-        Notification.find({ userId })
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(perPage)
-          .lean(),
-        Notification.countDocuments({ userId })
+        Notification.find({ userId }).sort({ createdAt: -1 }).skip(skip).limit(perPage).lean(),
+        Notification.countDocuments({ userId }),
       ]);
 
       if (!notifications || notifications.length === 0) {
@@ -101,29 +97,26 @@ export const notificationController = {
         },
       };
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      console.error('Error fetching notifications:', error);
       throw error;
     }
   },
 
   async markAsRead(notificationId) {
     try {
-      return await Notification.findByIdAndUpdate(notificationId, { read: true }, { new: true });
+      return await Notification.findByIdAndUpdate(notificationId, { isRead: true }, { new: true });
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error('Error marking notification as read:', error);
       throw error;
     }
   },
 
   async markAllAsRead(userId) {
     try {
-      const { modifiedCount } = await Notification.updateMany(
-        { userId, isRead: false },
-        { isRead: true }
-      );
+      const { modifiedCount } = await Notification.updateMany({ userId, isRead: false }, { isRead: true });
       return { success: true, modifiedCount };
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error('Error marking all notifications as read:', error);
       throw error;
     }
   },
@@ -132,7 +125,7 @@ export const notificationController = {
     try {
       return await Notification.findByIdAndDelete(notificationId);
     } catch (error) {
-      console.error("Error deleting notification:", error);
+      console.error('Error deleting notification:', error);
       throw error;
     }
   },
@@ -141,7 +134,7 @@ export const notificationController = {
     try {
       return await Notification.deleteMany({ userId });
     } catch (error) {
-      console.error("Error deleting all notifications:", error);
+      console.error('Error deleting all notifications:', error);
       throw error;
     }
   },

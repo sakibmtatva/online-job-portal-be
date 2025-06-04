@@ -23,10 +23,8 @@ const publicPrivateRoutes = ['/api/jobs', '/api/profileList', '/api/employerjobs
 export const middleware = withApiHandler(async request => {
   const response = NextResponse.next();
 
-  response.headers.set(
-    'Access-Control-Allow-Origin',
-    process.env.VERCEL_ENV === 'production' ? 'https://job-portal-fe-miyv.vercel.app' : 'http://localhost:5173'
-  );
+  response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5173');
+
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -66,7 +64,7 @@ export const middleware = withApiHandler(async request => {
       response.headers.set('x-user', JSON.stringify(payload));
       console.log('Verified:', payload);
     } catch (error) {
-      throw new ApiError("Token is expired",401)
+      throw new ApiError('Token is expired', 401);
     }
   }
   return response;

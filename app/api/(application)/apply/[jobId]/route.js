@@ -47,6 +47,7 @@ export const POST = withApiHandler(async (request, { params }) => {
   const values = {
     cover_letter: cover_letter,
     resume_url: uploadedUrl,
+    trello_name: 'All Applications',
   };
 
   ApplicationSchema.parse(values);
@@ -63,6 +64,10 @@ export const POST = withApiHandler(async (request, { params }) => {
 
   let job = await Jobs.findById(jobId).populate('user', '-password');
 
+  if (!job || job.status === 'Expired') {
+    throw new ApiError('This job has expired. You cannot apply.', 400);
+  }
+
   if (job) {
     job.applicants.push(userDetails.id);
     await Jobs.findByIdAndUpdate(jobId, job, {
@@ -76,7 +81,7 @@ export const POST = withApiHandler(async (request, { params }) => {
 
     const fullHtml = cover_letter + footer;
     const candidate = await Users.findById(userDetails.id);
-    
+
     await notificationController.createNotification(
       job.user._id,
       `${candidate.full_name} has applied for your job '${job.job_title}'`,
@@ -97,7 +102,6 @@ export const POST = withApiHandler(async (request, { params }) => {
   const application = await Application.create(data);
   return successResponse(application, 'applied for the job successfully', 201);
 });
-
 
 /**
  * @openapi
