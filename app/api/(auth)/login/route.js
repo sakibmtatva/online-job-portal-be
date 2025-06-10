@@ -7,6 +7,7 @@ import { withApiHandler } from '@/utils/commonHandlers';
 import { ApiError } from '@/utils/commonError';
 import '@/models/candidate';
 import '@/models/employer';
+import '@/models/subscription';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -16,7 +17,13 @@ export const POST = withApiHandler(async request => {
   await connectMongoDB();
   const user = await Users.findOne({ email })
     .populate('candidate-profile-info', 'profile_url')
-    .populate('employer-profile-info', 'profile_url');
+    .populate('employer-profile-info', 'profile_url')
+    .populate({
+      path: 'currentSubscription',
+      select: 'planData',
+      options: { lean: true }
+    });
+
   if (!user) {
     throw new ApiError('Invalid credentials', 401);
   }
@@ -59,13 +66,18 @@ export const POST = withApiHandler(async request => {
     { expiresIn: '7d' }
   );
 
+  let planData = null;
+  if (user.currentSubscription && typeof user.currentSubscription === 'object') {
+    planData = user.currentSubscription.planData ?? null;
+  }
+
   return NextResponse.json(
     {
       success: true,
-      data: { ...rest, profile_url },
+      data: { ...rest, profile_url, planData },
       message: 'Login successfully',
       token,
-      user: { ...rest, profile_url },
+      user: { ...rest, profile_url, planData },
     },
     { status: 200 }
   );

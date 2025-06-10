@@ -1,18 +1,26 @@
 import Meeting from '@/models/meeting';
 import connectMongoDB from '@/lib/mongodb';
 import { successResponse, withApiHandler } from '@/utils/commonHandlers';
-import { ApiError } from '@/utils/commonError';
 import '@/models/candidate';
 import '@/models/jobs';
 import '@/models/users';
+import '@/models/employer';
 
 export const GET = withApiHandler(async request => {
   await connectMongoDB();
 
   const userDetails = JSON.parse(request.headers.get('x-user') || '{}');
 
-  if (userDetails.user_type !== 'Employer') {
-    throw new ApiError('Only employers can view scheduled meetings', 401);
+  let userType = userDetails.user_type;
+  let userObj;
+  if (userType === 'Candidate') {
+    userObj = {
+      candidate: userDetails.id,
+    };
+  } else {
+    userObj = {
+      scheduled_by: userDetails.id,
+    };
   }
 
   const { searchParams } = new URL(request.url);
@@ -23,7 +31,7 @@ export const GET = withApiHandler(async request => {
   const limit = shouldPaginate ? parseInt(limitParam) : 0;
   const skip = shouldPaginate ? (page - 1) * limit : 0;
 
-  const meetings = Meeting.find({ scheduled_by: userDetails.id })
+  const meetings = Meeting.find(userObj)
     .populate({
       path: 'job',
       select: 'job_title',
@@ -32,13 +40,21 @@ export const GET = withApiHandler(async request => {
       path: 'candidate',
       select: 'full_name email phone',
     })
+    .populate({
+      path: 'scheduled_by',
+      select: 'full_name email phone profile_url',
+      populate: {
+        path: 'employer-profile-info',
+        select: 'profile_url',
+      },
+    })
     .sort({ createdAt: -1 });
 
   if (shouldPaginate) {
     meetings.skip(skip).limit(limit);
   }
   const finalMeetings = await meetings;
-  const total = await Meeting.countDocuments({ scheduled_by: userDetails.id });
+  const total = await Meeting.countDocuments(userObj);
 
   return successResponse(finalMeetings, 'Meetings fetched successfully', 200, {
     total,

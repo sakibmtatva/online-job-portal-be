@@ -61,7 +61,6 @@ export const POST = withApiHandler(async request => {
     await Employer.create({ user: newUser._id });
   }
 
-
   return NextResponse.json(
     {
       message: 'User created successfully. Please check your email to verify your account.',

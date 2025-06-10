@@ -1,7 +1,7 @@
 import { Body, Container, Head, Html, Preview, Section, Text, Hr } from '@react-email/components';
 import * as React from 'react';
 
-export const ContactUsEmail = (contactDetails) => {
+export const ContactUsEmail = contactDetails => {
   return (
     <Html>
       <Head />
@@ -13,14 +13,10 @@ export const ContactUsEmail = (contactDetails) => {
           </Section>
           <Hr style={divider} />
           <Section style={content}>
-            <Text style={paragraph}>
-              Yo have got Message from {contactDetails.email}.
-            </Text>
+            <Text style={paragraph}>Yo have got Message from {contactDetails.email}.</Text>
           </Section>
           <Section style={content}>
-            <Text style={paragraph}>
-             {contactDetails.message}
-            </Text>
+            <Text style={paragraph}>{contactDetails.message}</Text>
           </Section>
         </Container>
       </Body>

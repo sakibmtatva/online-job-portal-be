@@ -3,29 +3,29 @@ import mongoose, { Schema } from 'mongoose';
 const userSchema = new mongoose.Schema({
   full_name: {
     type: String,
-    required: [true, "Full name is required"],
+    required: [true, 'Full name is required'],
   },
   user_name: {
     type: String,
-    required: [true, "User name is required"],
+    required: [true, 'User name is required'],
     unique: true,
   },
   email: {
     type: String,
-    required: [true, "Email is required"],
+    required: [true, 'Email is required'],
     unique: true,
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
+    required: [true, 'Password is required'],
   },
   user_type: {
     type: String,
     enum: {
-      values: ["Candidate", "Employer"],
+      values: ['Candidate', 'Employer'],
       message: "User type must be either 'Candidate' or 'Employer'",
     },
-    required: [true, "User type is required"],
+    required: [true, 'User type is required'],
   },
   isVerified: {
     type: Boolean,
@@ -36,7 +36,18 @@ const userSchema = new mongoose.Schema({
   resetPasswordOTPExpiry: Date,
   fcmTokens: {
     type: [String],
-    default: []
+    default: [],
+  },
+  // subscription: {
+  //   plan: String,
+  //   active: Boolean,
+  //   paymentId: String,
+  //   purchasedAt: Date,
+  // },
+  currentSubscription: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subscription',
+    default: null,
   },
 });
 

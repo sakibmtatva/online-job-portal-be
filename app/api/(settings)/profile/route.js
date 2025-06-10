@@ -11,7 +11,7 @@ import { ApiError } from '@/utils/commonError';
 export const GET = withApiHandler(async request => {
   await connectMongoDB();
   const userDetails = JSON.parse(request.headers.get('x-user'));
-  const user = await Users.findById(userDetails.id);
+  const user = await Users.findById(userDetails.id).select('-password');
 
   if (!user) {
     throw new ApiError('User not found', 404);
@@ -28,7 +28,10 @@ export const GET = withApiHandler(async request => {
     throw new ApiError('Profile not found', 404);
   }
 
-  return successResponse(profileData, 'Profile details fetched successfully', 200);
+  return successResponse({
+    ...user.toObject(),
+    ...profileData.toObject(),
+  }, 'Profile details fetched successfully', 200);
 });
 
 export const PUT = withApiHandler(async request => {

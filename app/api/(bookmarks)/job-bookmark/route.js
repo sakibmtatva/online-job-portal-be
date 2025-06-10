@@ -33,8 +33,8 @@ export const POST = withApiHandler(async request => {
       `${user.full_name} has interseted in your job '${job.job_title}'`,
       'info',
       {
-        type:'candidate',
-        id: userDetails.id
+        type: 'candidate',
+        id: userDetails.id,
       }
     );
   }

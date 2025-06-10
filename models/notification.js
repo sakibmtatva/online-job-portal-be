@@ -1,10 +1,10 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "User"
+    ref: 'User',
   },
   message: {
     type: String,
@@ -12,12 +12,12 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["info", "success", "warning", "error"],
-    default: "info"
+    enum: ['info', 'success', 'warning', 'error'],
+    default: 'info',
   },
   data: {
     type: mongoose.Schema.Types.Mixed,
-    default: null
+    default: null,
   },
   isRead: {
     type: Boolean,

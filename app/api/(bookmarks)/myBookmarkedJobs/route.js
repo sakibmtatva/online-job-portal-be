@@ -5,7 +5,7 @@ import { ApiError } from '@/utils/commonError';
 import { successResponse, withApiHandler } from '@/utils/commonHandlers';
 import mongoose from 'mongoose';
 
-export const GET = withApiHandler(async (request) => {
+export const GET = withApiHandler(async request => {
   await connectMongoDB();
   const userDetails = JSON.parse(request.headers.get('x-user'));
   if (userDetails.user_type === 'Employer') {
@@ -41,7 +41,7 @@ export const GET = withApiHandler(async (request) => {
     { $unwind: { path: '$employer', preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        jobDetails: '$job',  
+        jobDetails: '$job',
         profile_url: '$employer.profile_url',
       },
     },

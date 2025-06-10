@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
 export const createApiResponse = (message, data = null, status = 200) => {
   return {

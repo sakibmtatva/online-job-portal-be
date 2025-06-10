@@ -99,7 +99,7 @@ export const DELETE = withApiHandler(async (_, { params }) => {
   return successResponse(null, 'Job deleted successfully', 200);
 });
 
-export const POST = withApiHandler(async (request) => {
+export const POST = withApiHandler(async request => {
   await connectMongoDB();
   const body = await request.json();
   const userDetails = JSON.parse(request.headers.get('x-user'));
@@ -112,7 +112,7 @@ export const POST = withApiHandler(async (request) => {
     ...body,
     user: userDetails.id,
     applicants: [],
-    status: 'active'
+    status: 'active',
   };
 
   JobValidationSchema.parse(data);

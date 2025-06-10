@@ -23,12 +23,9 @@ export const POST = withApiHandler(async request => {
   }
 
   try {
-    await sendPasswordResetEmail(email, user.full_name, otp);  
-  } catch (error) {    
-    throw new ApiError(
-      'Failed to send reset password email. Please try again later.',
-      500
-    );
+    await sendPasswordResetEmail(email, user.full_name, otp);
+  } catch (error) {
+    throw new ApiError('Failed to send reset password email. Please try again later.', 500);
   }
 
   user.resetPasswordOTP = otp;

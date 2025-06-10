@@ -68,8 +68,8 @@ export const GET = withApiHandler(async request => {
   let jobs = await Jobs.aggregate([
     {
       $sort: {
-        is_featured: -1,     
-        createdAt: 1          
+        is_featured: -1,
+        createdAt: 1,
       },
     },
     {
@@ -196,11 +196,7 @@ export const PUT = withApiHandler(async request => {
     throw new ApiError('Job not found or unauthorized', 404);
   }
 
-  return successResponse(
-    job,
-    `Job ${is_featured ? 'marked as featured' : 'unfeatured'} successfully`,
-    200
-  );
+  return successResponse(job, `Job ${is_featured ? 'marked as featured' : 'unfeatured'} successfully`, 200);
 });
 
 /**

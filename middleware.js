@@ -16,6 +16,7 @@ const publicRoutes = [
   '/api/job-categories',
   '/api/cities',
   '/api/contactus',
+  '/api/webhooks/stripe'
 ];
 
 const publicPrivateRoutes = ['/api/jobs', '/api/profileList', '/api/employerjobs', '/api/swagger'];
@@ -23,7 +24,7 @@ const publicPrivateRoutes = ['/api/jobs', '/api/profileList', '/api/employerjobs
 export const middleware = withApiHandler(async request => {
   const response = NextResponse.next();
 
-  response.headers.set('Access-Control-Allow-Origin', 'https://online-job-portal-fe.onrender.com');
+  response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5173');
 
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
