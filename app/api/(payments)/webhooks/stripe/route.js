@@ -20,7 +20,7 @@ export async function POST(req) {
             signature,
             process.env.STRIPE_WEBHOOK_SECRET
         )
-    } catch (error) {
+    } catch (err) {
         throw new ApiError(`Webhook Error: ${err.message}`, 400);
     }
 
